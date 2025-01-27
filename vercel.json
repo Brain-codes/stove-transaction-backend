@@ -1,0 +1,27 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/transactions",
+      "dest": "server.js"
+    },
+    {
+      "src": "/api/images",
+      "dest": "server.js"
+    },
+    {
+      "src": "/api/images/(.*)",
+      "dest": "server.js"
+    },
+    {
+      "src": "/api/images/:slug",
+      "dest": "server.js"
+    }
+  ]
+}
