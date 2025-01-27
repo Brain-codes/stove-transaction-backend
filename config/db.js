@@ -8,7 +8,7 @@ const connectDB = async () => {
       //   useUnifiedTopology: true,
       serverSelectionTimeoutMS: 90000,
     });
-    console.log("MongoDB connected");
+    console.log("MongoDB connected y");
   } catch (error) {
     console.error("MongoDB connection failed:", error);
     process.exit(1);
