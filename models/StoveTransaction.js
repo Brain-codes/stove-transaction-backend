@@ -1,5 +1,36 @@
 const mongoose = require("mongoose");
 
+const locationSchema = new mongoose.Schema({
+  fullAddress: {
+    type: String,
+    required: true,
+  },
+  street: {
+    type: String,
+    required: true,
+  },
+  city: {
+    type: String,
+    required: true,
+  },
+  state: {
+    type: String,
+    required: true,
+  },
+  country: {
+    type: String,
+    required: true,
+  },
+  latitude: {
+    type: Number,
+    required: true,
+  },
+  longitude: {
+    type: Number,
+    required: true,
+  },
+});
+
 const stoveTransactionSchema = new mongoose.Schema({
   transactionId: {
     type: String,
@@ -27,18 +58,7 @@ const stoveTransactionSchema = new mongoose.Schema({
     required: true,
   },
   aka: String,
-  state: {
-    type: String,
-    required: true,
-  },
-  lga: {
-    type: String,
-    required: true,
-  },
-  address: {
-    type: String,
-    required: true,
-  },
+  addressData: locationSchema,
   phone: {
     type: String,
     required: true,
@@ -57,4 +77,4 @@ const stoveTransactionSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("stove-transaction", stoveTransactionSchema); 
+module.exports = mongoose.model("stove-transaction", stoveTransactionSchema);
