@@ -1,7 +1,7 @@
 // server.js
 const express = require("express");
 const dotenv = require("dotenv");
-const connectDB = require("./config/db");
+const connection = require("./config/db");
 const cors = require("cors");
 const formatResponse = require("./utils/formatResponse");
 const mongoose = require("mongoose");
@@ -9,9 +9,6 @@ const mongoose = require("mongoose");
 dotenv.config();
 
 const app = express();
-
-// Connect to MongoDB
-connectDB();
 
 // Middleware to parse JSON
 // Apply JSON parsing middleware only for POST, PUT, DELETE requests

@@ -115,3 +115,6 @@ dist
 .yarn/install-state.gz
 .pnp.*
 .vercel
+
+# Google credentials file
+google-credentials.json

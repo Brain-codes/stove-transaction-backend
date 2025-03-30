@@ -1,7 +1,6 @@
-const cloudinary = require("../config/cloudinaryConfig");
-const Image = require("../models/Image");
-const formatResponse = require("../utils/formatResponse");
-const upload = require("../config/multerConfig");
+const { uploadToDrive, deleteFromDrive } = require('../utils/driveUpload');
+const Image = require('../models/Image');
+const formatResponse = require('../utils/formatResponse');
 
 exports.updateImage = async (req, res) => {
   try {
@@ -67,11 +66,11 @@ exports.deleteImage = async (req, res) => {
       return res.status(404).json(formatResponse(404, "Image not found"));
     }
 
-    // Delete image from Cloudinary
-    await cloudinary.uploader.destroy(image.public_id);
+    // Delete from Google Drive
+    await deleteFromDrive(image.public_id);
 
-    // Delete image from database
-    await image.remove();
+    // Delete from database
+    await image.deleteOne();
 
     res.status(200).json(formatResponse(200, "Image deleted successfully"));
   } catch (error) {
@@ -81,69 +80,44 @@ exports.deleteImage = async (req, res) => {
 
 exports.addImage = async (req, res) => {
   try {
-    const { file, body } = req; // Get the uploaded file and body from the request
-    const { folderName } = body; // Extract folder name from the request body
+    const { file, body } = req;
+    const { folderName } = body;
 
-    console.log("Received image file:", file); // Log the received image file
-    console.log("Folder name:", folderName); // Log the folder name
+    const folderMap = {
+      'stoveImage': 'Stove Images',
+      'agreementImage': 'Agreement Images',
+      'others': 'Other Images'
+    };
 
-    // Define allowed folder names
-    const allowedFolders = ["others", "stoveImage", "agreementImage"];
-
-    // Validate folder name
-    if (!folderName || !allowedFolders.includes(folderName)) {
-      console.log("Invalid folder name provided"); // Log if the folder name is invalid
-      return res
-        .status(400)
-        .json(
-          formatResponse(
-            400,
-            "Folder name must be one of: others, stoveImage, agreementImage"
-          )
-        );
+    if (!folderName || !folderMap[folderName]) {
+      return res.status(400).json(
+        formatResponse(400, 'Folder name must be one of: others, stoveImage, agreementImage')
+      );
     }
 
     if (!file) {
-      console.log("No image provided"); // Log if no image is provided
-      return res.status(400).json(formatResponse(400, "No image provided"));
+      return res.status(400).json(formatResponse(400, 'No image provided'));
     }
 
-    // Upload the image file to Cloudinary
-    const uploadStream = cloudinary.uploader.upload_stream(
-      {
-        folder: folderName, // Use the provided folder name
-        resource_type: "image", // Specify resource type
-      },
-      async (error, result) => {
-        if (error) {
-          console.error("Cloudinary upload error:", error); // Log the error
-          return res
-            .status(500)
-            .json(
-              formatResponse(500, "Error uploading image to Cloudinary", error)
-            );
-        }
-
-        // Log the successful upload response
-        console.log("Image uploaded successfully:", result);
-
-        // Save the image details in the database
-        const newImage = new Image({
-          public_id: result.public_id,
-          url: result.secure_url,
-        });
-
-        await newImage.save();
-        res
-          .status(201)
-          .json(formatResponse(201, "Image added successfully", newImage));
-      }
+    // Upload to Google Drive with proper folder name
+    const fileName = `${Date.now()}_${file.originalname}`;
+    const driveResponse = await uploadToDrive(
+      file.buffer,
+      fileName,
+      file.mimetype,
+      folderMap[folderName] // Use mapped folder name
     );
 
-    // Use the buffer from the uploaded file
-    uploadStream.end(file.buffer);
+    // Save to database
+    const newImage = new Image({
+      public_id: driveResponse.fileId,
+      url: driveResponse.url
+    });
+
+    const savedImage = await newImage.save();
+    res.status(201).json(formatResponse(201, 'Image added successfully', savedImage));
   } catch (error) {
-    console.error("Error adding image:", error); // Log the error
-    res.status(500).json(formatResponse(500, "Error adding image", error));
+    console.error('Error adding image:', error);
+    res.status(500).json(formatResponse(500, 'Error adding image', error));
   }
 };
