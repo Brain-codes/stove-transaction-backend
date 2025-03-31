@@ -63,6 +63,8 @@ const stoveTransactionSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  stateBackup: String,
+  lgaBackup : String,
   otherPhone: String,
   partnerName: String,
   amount: Number,
